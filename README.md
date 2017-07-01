@@ -1,2 +1,3 @@
-# dan
-Demo code for paper ''Distributional Adversarial Networks''
+# DAN: Distributional Adversarial Networks
+
+Tensorflow demo code for paper ''Distributional Adversarial Networks''
