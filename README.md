@@ -14,11 +14,11 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 ### Visualization
 The following visualization shows how the randomly generated figures evolve through 100 epochs with different models. While for vanilla GAN the figures mostly concentrate on ''easy-to-generate'' modes like 1 and 7, models within DAN framework generate figures that have better coverages over different modes.
 
-![Vanilla GAN](fig/gan.gif)
+![](fig/gan.gif "Vanilla GAN")
 
-![DAN-S](fig/dan_s.gif)
+![](fig/dan_s.gif "DAN-S")
 
-![DAN-2S](fig/dan_2s.gif)
+![](fig/dan_2s.gif "DAN-2S")
 
 ## Citation
 If you use this code for your research, please cite our [paper](https://arxiv.org/abs/1706.09549):
