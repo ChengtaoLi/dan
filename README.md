@@ -26,7 +26,7 @@ If you use this code for your research, please cite our [paper](https://arxiv.or
 ```
 @article{li2017distributional,
   title={Distributional Adversarial Networks},
-  author={Chengtao Li*, David Alvarez-Melis*, Keyulu Xu, Stefanie Jegelka, Suvrit Sra},
+  author={Chengtao Li, David Alvarez-Melis, Keyulu Xu, Stefanie Jegelka, Suvrit Sra},
   journal={arXiv preprint arXiv:1706.09549},
   year={2017}
 }
