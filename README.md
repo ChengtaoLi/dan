@@ -18,10 +18,10 @@ A schematic representation of these two methods is:
 
 | Vanilla GAN                   | DAN-S                         |                      
 |:-----------------------------:|:-----------------------------:|
-| ![](toy/fig/gan.fig)          | ![](toy/fig/dan_s.fig)        |
+| ![](toy/fig/gan.gif)          | ![](toy/fig/dan_s.gif)        |
 | DAN-2S                        | Ground Truth                  |
 |:-----------------------------:|:-----------------------------:|
-| ![](toy/fig/dan_2s.fig)       | ![](toy/fig/real.png)         |
+| ![](toy/fig/dan_2s.gif)       | ![](toy/fig/real.png)         |
 
 
 ## Running the Experiments on MNIST
