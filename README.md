@@ -7,7 +7,7 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 ## Running the Experiments on MNIST
 This part of code lies in `mnist` folder 
 
-It depends on tensorflow >= 1.0, numpy, scipy, matplotlib and has been tested on Python 2.7.
+It depends on `tensorflow` >= 1.0, `numpy`, `scipy`, `matplotlib` and has been tested on Python 2.7.
 
 ### Training
 To train the adversarial network, run
