@@ -54,4 +54,4 @@ If you use this code for your research, please cite our [paper](https://arxiv.or
 ```
 
 ## Contact
-[ctli@mit.edu](mailto:ctli@mit.edu)
+Please email to [ctli@mit.edu](mailto:ctli@mit.edu) should you have any questions, comments or suggestions.
