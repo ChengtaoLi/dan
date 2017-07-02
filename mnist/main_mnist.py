@@ -7,6 +7,7 @@ import tensorflow as tf
 
 import model_mnist_mlp
 import mnist_classifier
+import utils
 from utils import pp
 
 flags = tf.app.flags
@@ -85,4 +86,5 @@ def main(_):
             print("L2: {}".format(label_l2))
 
 if __name__ == '__main__':
+    utils.download_mnist()
     tf.app.run()
