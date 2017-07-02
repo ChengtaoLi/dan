@@ -12,7 +12,7 @@ Both of these methods relies on a first stage encoder (Deep Mean Encoder), which
 
 A schematic representation of these two methods is:
 
-![Alt text](img/train.pdf?raw=true "Optional Title")
+![](img/train.pdf "Model")
 
 ---
 
