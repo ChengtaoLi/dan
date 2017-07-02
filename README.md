@@ -8,13 +8,11 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 This part of code lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
 
 ### Prerequisites
-* Python 2.7
+* `Python` 2.7
 * `tensorflow` >= 1.0
 * `numpy`
 * `scipy`
 * `matplotlib`
-
-It depends on `tensorflow` >= 1.0, `numpy`, `scipy`, `matplotlib` and has been tested on Python 2.7.
 
 ### Training
 To train the adversarial network, run
