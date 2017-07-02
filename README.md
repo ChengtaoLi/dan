@@ -12,7 +12,7 @@ Both of these methods relies on a first stage encoder (Deep Mean Encoder), which
 
 A schematic representation of these two methods is:
 
-![](img/train.pdf "Model")
+![](img/train.pdf)
 
 ---
 
