@@ -34,9 +34,9 @@ The result will be saved to the file specified by `savepath`. A random run gives
 
 |              | Vanilla GAN  | DAN-S        | DAN-2S       |
 |:------------:|:------------:|:------------:|:------------:|
-| Entropy      | 1.623        | 2.295        | 2.288        | 
-| TV Dist      | 0.461        | 0.047        | 0.061        | 
-| L2 Dist      | 0.183        | 0.001        | 0.003        | 
+| Entropy (the higher the better)      | 1.623        | 2.295        | 2.288        | 
+| TV Dist (the lower the better)      | 0.461        | 0.047        | 0.061        | 
+| L2 Dist (the lower the better)      | 0.183        | 0.001        | 0.003        | 
 
 ### Visualization
 The following visualization shows how the randomly generated figures evolve through 100 epochs with different models. While for vanilla GAN the figures mostly concentrate on ''easy-to-generate'' modes like `1`, models within DAN framework generate figures that have better coverages over different modes.
