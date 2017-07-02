@@ -43,7 +43,7 @@ The following visualization shows how the randomly generated figures evolve thro
 
 |Vanilla GAN                    |  DAN-S                        |  DAN-2S                       |
 |:-----------------------------:|:-----------------------------:|:-----------------------------:|
-|![](fig/gan.gif "Vanilla GAN") | ![](fig/dan_s.gif "DAN-S")    | ![](fig/dan_2s.gif "DAN-2S")  |
+|![](mnist/fig/gan.gif "Vanilla GAN") | ![](mnist/fig/dan_s.gif "DAN-S")    | ![](mnist/fig/dan_2s.gif "DAN-2S")  |
 
 
 ## Citation
