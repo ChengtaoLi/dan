@@ -16,6 +16,10 @@ The following visualization shows how the randomly generated figures evolve thro
 
 `Vanilla GAN`
 
+|Vanilla GAN                    |  DAN-S                        |  DAN-2S                       |
+|:-----------------------------:|:-----------------------------:|:-----------------------------:|
+|![](fig/gan.gif "Vanilla GAN") | ![](fig/dan_s.gif "DAN-S")    | ![](fig/dan_2s.gif "DAN-2S")  |
+
 ![](fig/gan.gif "Vanilla GAN")
 
 ![](fig/dan_s.gif "DAN-S")
