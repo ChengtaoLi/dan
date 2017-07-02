@@ -14,7 +14,7 @@ flags = tf.app.flags
 # model settings
 
 flags.DEFINE_string(
-    "model_mode", "gan", "type of model [gan, dan_s, dan_2s]")
+    "model_mode", "dan_s", "type of model from {gan, dan_s, dan_2s} [dan_s]")
 
 # training settings
 
