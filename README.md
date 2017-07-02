@@ -10,8 +10,9 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 
 ### Evaluation
 To evaluate how well the model recovers the mode frequencies, one need an accurate classifier on MNIST dataset as an approximate label indicator. The code for the classifier is in `mnist_classifier.py` and is adapted from [Tensorflow-Examples](https://github.com/aymericdamien/TensorFlow-Examples/). To train the classifier, run
-
-`python mnist_classifier.py`
+```
+python mnist_classifier.py
+```
 
 After 10 epochs the classifier has an accuracy of \~98\% on test set. The model is stored in the folder `mnist_cnn` for later evaluation.
 
