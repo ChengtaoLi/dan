@@ -14,6 +14,13 @@ A schematic representation of these two methods is:
 
 ![](fig/train.png)
 
+## Prerequisites
+* `Python 2.7`
+* `tensorflow >= 1.0`
+* `numpy`
+* `scipy`
+* `matplotlib`
+
 ---
 
 ## Toy Experiments
@@ -32,13 +39,6 @@ A self-contained implementation of the two DAN models applied to a simple 2D mix
 
 ## Running the Experiments on MNIST
 This part of code lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
-
-### Prerequisites
-* `Python 2.7`
-* `tensorflow >= 1.0`
-* `numpy`
-* `scipy`
-* `matplotlib`
 
 ### Training
 To train the adversarial network, run
