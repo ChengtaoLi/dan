@@ -9,7 +9,7 @@ This part of code lies in `mnist` folder and is built based on [DCGAN Implementa
 
 ### Prerequisites
 * `Python 2.7`
-* `tensorflow` >= 1.0
+* `tensorflow >= 1.0`
 * `numpy`
 * `scipy`
 * `matplotlib`
