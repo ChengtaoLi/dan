@@ -5,7 +5,7 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 ---
 
 ## Running the Experiments on MNIST
-This part of code lies in `mnist` folder 
+This part of code lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
 
 It depends on `tensorflow` >= 1.0, `numpy`, `scipy`, `matplotlib` and has been tested on Python 2.7.
 
@@ -55,5 +55,3 @@ If you use this code for your research, please cite our [paper](https://arxiv.or
 
 ## Contact
 [ctli@mit.edu](mailto:ctli@mit.edu)
-
-This part of code is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow)
