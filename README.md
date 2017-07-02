@@ -2,6 +2,18 @@
 
 Tensorflow demo code for paper [Distributional Adversarial Networks](https://arxiv.org/abs/1706.09549) by [Chengtao Li\*](http://chengtaoli.com), [David Alvarez-Melis\*](http://people.csail.mit.edu/davidam/), [Keyulu Xu](http://keyulux.com), [Stefanie Jegelka](http://people.csail.mit.edu/stefje/) and [Suvrit Sra](http://suvrit.de).
 
+## Summary
+
+The main difference with the original GAN method is that the Discriminator is operates on samples (of n>1 examples) rather than a single sample point to discriminate between real and generated distributions. In the paper we propose two such type of methods:
+* A single-sample classifier $M_S$ which classifies samples as fake or real (i.e. a sample-based analogue to the original GAN classifier)
+* A two-sample discriminator $M_{2S}$ which must decide whether two samples are drawn from the same distribution or not (reminiscent of two-sample tests in the the statistics literature)
+
+Both of these methods relies on a first stage encoder (Deep Mean Encoder), which embeds and aggregates individual examples to obtain a fixed-size representation of the sample. These vectors are then used as inputs to the two types of classifiers. 
+
+A schematic representation of these two methods is:
+
+![title](img/train.pdf)
+
 ---
 
 ## Running the Experiments on MNIST
