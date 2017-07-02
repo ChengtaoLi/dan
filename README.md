@@ -12,7 +12,7 @@ Both of these methods relies on a first stage encoder (Deep Mean Encoder), which
 
 A schematic representation of these two methods is:
 
-[[https://github.com/ChengtaoLi/dan/blob/master/img/train.pdf|alt=octocat]]
+![Alt text](img/train.pdf?raw=true "Optional Title")
 
 ---
 
