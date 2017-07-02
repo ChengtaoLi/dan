@@ -5,16 +5,31 @@ Tensorflow demo code for paper [Distributional Adversarial Networks](https://arx
 ---
 
 ## Running the Experiments on MNIST
+This part of code lies in `mnist` folder and depends on tensorflow >= 1.0, numpy, scipy, matplotlib. It has been tested on Python 2.7.
 
 ### Training
+To train the adversarial network, run
+```
+python main_mnist.py --model_mode [MODEL_MODE] --is_train True
+```
+Here `MODEL_MODE` can be one of `gan` (for vanilla GAN model), `dan_s` (for DAN-S) or `dan_2s` (for DAN-2S). 
 
 ### Evaluation
 To evaluate how well the model recovers the mode frequencies, one need an accurate classifier on MNIST dataset as an approximate label indicator. The code for the classifier is in `mnist_classifier.py` and is adapted from [Tensorflow-Examples](https://github.com/aymericdamien/TensorFlow-Examples/). To train the classifier, run
 ```
 python mnist_classifier.py
 ```
+The classifier has an accuracy of \~97.6\% on test set after 10 epochs and is stored in the folder `mnist_cnn` for later evaluation. To use the classifier to estimate the label frequencies of generated figures, run
+```
+python main_mnist.py --model_mode [MODEL_MODE] --is_train False
+```
+The result will be saved to the file specified by `savepath`. A random run gives the following results with different `model_mode`'s.
 
-After 10 epochs the classifier has an accuracy of \~98\% on test set. The model is stored in the folder `mnist_cnn` for later evaluation.
+|              | Vanilla GAN  | DAN-S        | DAN-2S       |
+|:------------:|:------------:|:------------:|:------------:|
+| Entropy      | 1.623        | 2.295        | 2.288        | 
+| TV Dist      | 0.461        | 0.047        | 0.061        | 
+| L2 Dist      | 0.183        | 0.001        | 0.003        | 
 
 ### Visualization
 The following visualization shows how the randomly generated figures evolve through 100 epochs with different models. While for vanilla GAN the figures mostly concentrate on ''easy-to-generate'' modes like `1`, models within DAN framework generate figures that have better coverages over different modes.
@@ -38,3 +53,5 @@ If you use this code for your research, please cite our [paper](https://arxiv.or
 
 ## Contact
 [ctli@mit.edu](mailto:ctli@mit.edu)
+
+This part of code is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow)
