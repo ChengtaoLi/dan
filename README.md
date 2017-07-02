@@ -16,6 +16,14 @@ A schematic representation of these two methods is:
 
 ---
 
+| Vanilla GAN                   | DAN-S                         |                      
+|:-----------------------------:|:-----------------------------:|
+| ![](toy/fig/gan.fig)          | ![](toy/fig/dan_s.fig)        |
+| DAN-2S                        | Ground Truth                  |
+|:-----------------------------:|:-----------------------------:|
+| ![](toy/fig/dan_2s.fig)       | ![](toy/fig/real.png)         |
+
+
 ## Running the Experiments on MNIST
 This part of code lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
 
