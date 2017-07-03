@@ -25,7 +25,7 @@ A schematic representation of these two methods is:
 
 ## Toy Experiments
 
-A self-contained implementation of the two DAN models applied to a simple 2D mixture of gaussians examples can be found in [this notebook](toy_demo.ipynb). Some of the visualization tools were borrowed from [here](https://github.com/poolio/unrolled_gan/blob/master/Unrolled%20GAN%20demo.ipynb).
+A self-contained implementation of the two DAN models applied to a simple 2D mixture of gaussians examples can be found in [this notebook](toy/toy_demo.ipynb) in `toy` folder. Some of the visualization tools were borrowed from [here](https://github.com/poolio/unrolled_gan/blob/master/Unrolled%20GAN%20demo.ipynb).
 
 ### Visualization
 | Vanilla GAN                   | DAN-S                         |                      
