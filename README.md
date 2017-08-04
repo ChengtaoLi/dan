@@ -87,7 +87,7 @@ To train the adversarial network, run
 ```
 python mnist_dann.py --model_mode [MODEL_MODE]
 ```
-Here `MODEL_MODE` can be one of `gan` (for vanilla GAN model), `dan_s` (for DAN-S) or `dan_2s` (for DAN-2S). A random run gives the following prediction accuracy on MNIST-M when the classifier is trained on MNIST.
+Here `MODEL_MODE` can be one of `gan` (for vanilla GAN model), `dan_s` (for DAN-S) or `dan_2s` (for DAN-2S). A random run with different different modes gives the following prediction accuracy on MNIST-M when the classifier is trained on MNIST.
 
 |              | Vanilla GAN  | DAN-S        | DAN-2S       |
 |:------------:|:------------:|:------------:|:------------:|
