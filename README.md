@@ -80,7 +80,7 @@ Run the following commands to download and create MNIST-M dataset.
 curl -O http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/BSR_bsds500.tgz
 python create_mnistm.py
 ```
-(instructions from [here](https://github.com/pumpikano/tf-dann)
+(instructions from [here](https://github.com/pumpikano/tf-dann))
 
 ### Training
 To train the adversarial network, run
