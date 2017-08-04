@@ -175,9 +175,6 @@ if __name__ == '__main__':
         correct_domain_pred = tf.equal(tf.argmax(model.domain, 1), tf.argmax(model.domain_pred, 1))
         domain_acc = tf.reduce_mean(tf.cast(correct_domain_pred, tf.float32))
 
-        s_softmax_logits = model.s_softmax_logits
-        s_logits = model.s_logits
-
     # Params
     num_steps = 55000
 
