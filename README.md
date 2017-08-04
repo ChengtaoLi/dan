@@ -37,8 +37,8 @@ A self-contained implementation of the two DAN models applied to a simple 2D mix
 | ![](toy/fig/dan_2s.gif)       | ![](toy/fig/real.png)         |
 
 
-## Running the Experiments on MNIST
-This part of code lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
+## MNIST Digit Generation
+This part of code can be used to reproduce experimental results on MNIST digit generation. It lies in `mnist` folder and is built based on [DCGAN Implementation](https://github.com/carpedm20/DCGAN-tensorflow).
 
 ### Training
 To train the adversarial network, run
@@ -71,6 +71,27 @@ The following visualization shows how the randomly generated figures evolve thro
 |:-----------------------------:|:-----------------------------:|:-----------------------------:|
 |![](mnist/fig/gan.gif "Vanilla GAN") | ![](mnist/fig/dan_s.gif "DAN-S")    | ![](mnist/fig/dan_2s.gif "DAN-2S")  |
 
+## Domain Adaptation
+This part of code can be used to reproduce experimental results of domain adaptation from MNIST to MNIST-M. It lies in `dann` folder and is built based on [DANN Implementation](https://github.com/pumpikano/tf-dann).
+
+### Build Dataset 
+Run the following commands to download and create MNIST-M dataset.
+```
+curl -O http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/BSR/BSR_bsds500.tgz
+python create_mnistm.py
+```
+(instructions from [here](https://github.com/pumpikano/tf-dann)
+
+### Training
+To train the adversarial network, run
+```
+python mnist_dann.py --model_mode [MODEL_MODE]
+```
+Here `MODEL_MODE` can be one of `gan` (for vanilla GAN model), `dan_s` (for DAN-S) or `dan_2s` (for DAN-2S). A random run gives the following prediction accuracy on MNIST-M when the classifier is trained on MNIST.
+
+|              | Vanilla GAN  | DAN-S        | DAN-2S       |
+|:------------:|:------------:|:------------:|:------------:|
+| Accuracy     | 77.0%        | 78.8%        | 80.4%        | 
 
 ## Citation
 If you use this code for your research, please cite our [paper](https://arxiv.org/abs/1706.09549):
