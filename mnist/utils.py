@@ -19,15 +19,23 @@ import os
 
 pp = pprint.PrettyPrinter()
 
-def download_mnist():
-    data_dir = 'data'
+def download_mnist(data_dir):
+
     if os.path.exists(data_dir):
-        print('Found MNIST - skip')
+        print('Found ' + data_dir + ' - skip')
         return
     else:
         os.mkdir(data_dir)
 
-    url_base = 'http://yann.lecun.com/exdb/mnist/'
+    if data_dir == 'mnist':
+        url_base = 'http://yann.lecun.com/exdb/mnist/'
+        
+    elif data_dir == 'fashion-mnist':
+        url_base = 'http://fashion-mnist.s3-website.eu-central-1.amazonaws.com/'
+
+    else:
+        raise NotImplementedError
+    
     file_names = ['train-images-idx3-ubyte.gz',
                   'train-labels-idx1-ubyte.gz',
                   't10k-images-idx3-ubyte.gz',
@@ -43,8 +51,7 @@ def download_mnist():
         print('Decompressing ', file_name)
         subprocess.call(cmd)
 
-def load_mnist():
-    data_dir = "./data"
+def load_mnist(data_dir):
 
     fd = open(os.path.join(data_dir,'train-images-idx3-ubyte'))
     loaded = np.fromfile(file=fd,dtype=np.uint8)
