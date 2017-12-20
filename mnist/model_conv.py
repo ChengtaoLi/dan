@@ -32,12 +32,14 @@ class AdversarialNet(object):
             self.input_width = 28
             self.output_height = 28
             self.output_width = 28
+        else:
+            raise NotImplementedError
 
         self.build_model()
 
     def build_model(self):
 
-        image_dims = [self.input_height, self.input_width]
+        image_dims = [self.input_height, self.input_width, 1]
 
         self.inputs = tf.placeholder(
             tf.float32, [self.batch_size] + image_dims, name='real_images')
@@ -47,12 +49,12 @@ class AdversarialNet(object):
         # generator
         self.G = self.generator(self.z)
 
+        # sampler
+        self.sampler = self.generator(self.z, flag_train=False, flag_reuse=True)
+
         # discriminator
         self.D_real, self.D_logits_real = self.discriminator(self.inputs)
         self.D_fake, self.D_logits_fake = self.discriminator(self.G, flag_reuse=True)
-
-        # sampler
-        self.sampler = self.generator(self.z, flag_reuse=True)
 
         # losses
         self.g_loss = 0
@@ -148,22 +150,20 @@ class AdversarialNet(object):
 
     def train(self, config):
         """Train model"""
-        data, labels, test_data, test_labels = utils.load_mnist()
-        np.random.shuffle(data)
+        data, labels, test_data, test_labels = utils.load_mnist(self.dataset)
 
         g_optim = tf.train.AdamOptimizer(
-            config.learning_rate, beta1=config.beta1
+            config.lr, beta1=config.beta1
         ).minimize(self.g_loss, var_list=self.g_vars)
 
         d_optim = tf.train.AdamOptimizer(
-            config.learning_rate, beta1=config.beta1
+            config.lr, beta1=config.beta1
         ).minimize(self.d_loss, var_list=self.d_vars)
 
         if self.s_loss is not None:
             s_optim = tf.train.AdamOptimizer(
-                config.learning_rate, beta1=config.beta1
+                config.lr, beta1=config.beta1
             ).minimize(self.s_loss, var_list=self.s_vars)
-
 
         tf.global_variables_initializer().run()
 
@@ -228,7 +228,7 @@ class AdversarialNet(object):
                       % (epoch, idx, batch_idxs, time.time() - start_time, \
                          curr_d_loss, curr_g_loss, curr_s_loss))
 
-            samples = self.sess.run(self.sampler, feed_dict={ self.z: sample_z})
+            samples = self.sess.run(self.sampler, feed_dict={ self.z: sample_z })
 
             self.save_smpl(config.smpl_dir, epoch, samples)
             self.save(config.ckpt_dir, epoch)
@@ -247,7 +247,7 @@ class AdversarialNet(object):
 
         utils.save_images(samples, [manifold_h, manifold_w],
                           './{}/infer.png'.format(smpl_dir))
-        
+
     def sample(self):
         batch_z = np.random.uniform(-1, 1, size=[self.batch_size, self.z_dim])
         samples = self.sess.run(self.sampler, feed_dict={ self.z: batch_z })
@@ -259,7 +259,6 @@ class AdversarialNet(object):
         with tf.variable_scope("discriminator_dan_2s", reuse=flag_reuse):
             image_real_0, image_real_1 = tf.split(image_real, num_or_size_splits=2, axis=0)
             image_fake_0, image_fake_1 = tf.split(image_fake, num_or_size_splits=2, axis=0)
-
 
             h_real_0_0 = ops.lrelu(ops.conv2d(image_real_0, 64, 4, 4, 2, 2, name='s_conv0'))
             h_real_1_0 = ops.lrelu(ops.conv2d(image_real_1, 64, 4, 4, 2, 2, name='s_conv0', reuse=True))
@@ -310,14 +309,14 @@ class AdversarialNet(object):
 
     def generator(self, z, flag_train=True, flag_reuse=False):
         with tf.variable_scope("generator", reuse=flag_reuse):
-            h_0 = tf.nn.relu(ops.bn(ops.linear(z, 1024, scope='g_fc0'), is_training=is_training, scope='g_bn0'))
-            h_1 = tf.nn.relu(ops.bn(ops.linear(h_0, 128 * 7 * 7, scope='g_fc1'), is_training=is_training, scope='g_bn1'))
+            h_0 = tf.nn.relu(ops.bn(ops.linear(z, 1024, scope='g_fc0'), is_training=flag_train, scope='g_bn0'))
+            h_1 = tf.nn.relu(ops.bn(ops.linear(h_0, 128 * 7 * 7, scope='g_fc1'), is_training=flag_train, scope='g_bn1'))
             h_1_flat = tf.reshape(h_1, [self.batch_size, 7, 7, 128])
             h_2 = tf.nn.relu(ops.bn(
-                ops.deconv2d(h_1_flat, [self.batch_size, 14, 14, 64], 4, 4, 2, 2, name='g_dc2'), 
-                is_training=is_training, scope='g_bn2'
+                ops.deconv2d(h_1_flat, [self.batch_size, 14, 14, 64], 4, 4, 2, 2, name='g_dc2'),
+                is_training=flag_train, scope='g_bn2'
             ))
-            h_fin = deconv2d(h_2, [self.batch_size, 28, 28, 1], 4, 4, 2, 2, name='g_dc3')
+            h_fin = ops.deconv2d(h_2, [self.batch_size, 28, 28, 1], 4, 4, 2, 2, name='g_dc3')
 
             return tf.nn.sigmoid(h_fin)
 
