@@ -1,8 +1,8 @@
 
-methods = ['mmd']
+methods = ['dan_s']
 script = 'main.py'
 script_id = 1
-dataset = 'fashion'
+dataset = 'mnist'
 checkpoint_dir = 'ckpt_' + str(script_id)
 train_epoch = 50
 num_rep = 5

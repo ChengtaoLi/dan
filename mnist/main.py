@@ -27,9 +27,9 @@ flags.DEFINE_float(
     'lr', 0.0005, 'learning rate of for adam [0.0005]')
 flags.DEFINE_float(
     'beta1', 0.5, 'momentum term of adam [0.5]')
-flags.DEFINE_float(
+flags.DEFINE_integer(
     'z_dim', 256, 'latent dimension [256]')
-flags.DEFINE_float(
+flags.DEFINE_integer(
     'batch_size', 256, 'batch size [256]')
 flags.DEFINE_string(
     'ckpt_dir', 'ckpt', 'directory name to save the checkpoints [ckpt]')
