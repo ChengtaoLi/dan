@@ -9,10 +9,12 @@ import classifiers
 import utils
 from utils import pp
 
-from model_mlp import AdversarialNet
 
 flags = tf.app.flags
 
+flags.DEFINE_string(
+    'network', 'mlp',
+    'type of network from {mlp, conv} [mlp]')
 flags.DEFINE_string(
     'model_mode', 'dan_s',
     'type of model from {gan, wganori, wgangp, mmd, dan_s, dan_2s} [dan_s]')
@@ -50,6 +52,13 @@ config = flags.FLAGS
 
 if __name__ == '__main__':
     pp.pprint(config.__flags)
+
+    if config.network == 'mlp':
+        from model_mlp import AdversarialNet
+    elif config.network == 'conv':
+        from model_conv import AdversarialNet
+    else:
+        raise NotImplementedError
 
     classifier = classifiers.classifier_net(config.dataset)
     classifier.load()

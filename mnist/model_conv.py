@@ -17,7 +17,6 @@ class AdversarialNet(object):
 
         # model settings
         self.sess = sess
-        self.classifier = mnist_classifier.mnist_cnn(sess)
         self.model_mode = config.model_mode
         self.dataset = config.dataset
 
@@ -27,11 +26,14 @@ class AdversarialNet(object):
 
         self.ckpt_dir = config.ckpt_dir
 
-        if self.dataset == 'mnist' or self.dataset == 'fashion_mnist':
-            self.input_height = 28
-            self.input_width = 28
-            self.output_height = 28
-            self.output_width = 28
+        if self.dataset in ['mnist', 'fashion_mnist']:
+            self.img_height = 28
+            self.img_width = 28
+            self.img_channel = 1
+        elif self.dataset in ['svhn', 'cifar10']:
+            self.img_height = 32
+            self.img_width = 32
+            self.img_channel = 3
         else:
             raise NotImplementedError
 
@@ -39,7 +41,7 @@ class AdversarialNet(object):
 
     def build_model(self):
 
-        image_dims = [self.input_height, self.input_width, 1]
+        image_dims = [self.img_height, self.img_width, self.img_channel]
 
         self.inputs = tf.placeholder(
             tf.float32, [self.batch_size] + image_dims, name='real_images')
@@ -58,26 +60,45 @@ class AdversarialNet(object):
 
         # losses
         self.g_loss = 0
-        self.d_loss = 0
+        self.d_loss = None
         self.s_loss = None
 
-        self.d_loss_real = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(
-                logits = self.D_logits_real,
-                labels = tf.ones_like(self.D_real)
-            ))
-        self.d_loss_fake = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(
-                logits = self.D_logits_fake,
-                labels = tf.zeros_like(self.D_fake)
-            ))
-        self.d_loss = self.d_loss_real + self.d_loss_fake
+        if self.model_mode == 'gan' or \
+                self.model_mode.startswith('dan'):
 
-        self.g_loss = tf.reduce_mean(
-            tf.nn.sigmoid_cross_entropy_with_logits(
-                logits = self.D_logits_fake,
-                labels = tf.ones_like(self.D_fake)
-            ))
+            self.d_loss_real = tf.reduce_mean(
+                tf.nn.sigmoid_cross_entropy_with_logits(
+                    logits = self.D_logits_real,
+                    labels = tf.ones_like(self.D_real)
+                ))
+            self.d_loss_fake = tf.reduce_mean(
+                tf.nn.sigmoid_cross_entropy_with_logits(
+                    logits = self.D_logits_fake,
+                    labels = tf.zeros_like(self.D_fake)
+                ))
+            self.d_loss = self.d_loss_real + self.d_loss_fake
+
+            self.g_loss = tf.reduce_mean(
+                tf.nn.sigmoid_cross_entropy_with_logits(
+                    logits = self.D_logits_fake,
+                    labels = tf.ones_like(self.D_fake)
+                ))
+        elif self.model_mode.startswith('wgan'):
+            self.d_loss = -tf.reduce_mean(self.D_logits_real - self.D_logits_fake)
+            self.g_loss = -tf.reduce_mean(self.D_logits_fake)
+
+        elif self.model_mode == 'mmd':
+            self.g_loss = self.discriminator_mmd(self.inputs, self.G)
+
+        if self.model_mode == 'wgangp':
+            alpha = tf.random_uniform(shape=[self.batch_size, 1], minval=0., maxval=1.)
+            differences = self.G - self.inputs
+            interpolates = self.inputs + (alpha * differences)
+            _, D_inter = self.discriminator(interpolates, flag_reuse=True)
+            gradients = tf.gradients(D_inter, [interpolates])[0]
+            slopes = tf.sqrt(tf.reduce_sum(tf.square(gradients), reduction_indices=[1]))
+            gradient_penalty = tf.reduce_mean((slopes - 1.) ** 2)
+            self.d_loss += 10. * gradient_penalty
 
         # distributional adversary
 
@@ -99,14 +120,15 @@ class AdversarialNet(object):
               ))
             self.s_loss = self.s_loss_real + self.s_loss_fake
 
-            self.g_loss += 0.2 * tf.reduce_mean(
+            self.g_loss += 0.5 * tf.reduce_mean(
               tf.nn.sigmoid_cross_entropy_with_logits(
                   logits = self.D_set_logits_fake,
                   labels = tf.ones_like(self.D_set_fake)
               ))
 
         elif self.model_mode == 'dan_2s' :
-            self.D_11, self.D_00, self.D_10, self.D_01 = self.discriminator_dan_2s(self.inputs, self.G)
+            self.D_11, self.D_00, self.D_10, self.D_01 = \
+                    self.discriminator_dan_2s(self.inputs, self.G)
 
             self.s_loss_11 = tf.reduce_mean(
                 tf.nn.sigmoid_cross_entropy_with_logits(
@@ -144,7 +166,8 @@ class AdversarialNet(object):
 
         self.d_vars = [var for var in t_vars if 'd_' in var.name]
         self.g_vars = [var for var in t_vars if 'g_' in var.name]
-        self.s_vars = [var for var in t_vars if 's_' in var.name]
+
+        self.clip_d = [p.assign(tf.clip_by_value(p, -0.01, 0.01)) for p in self.d_vars]
 
         self.saver = tf.train.Saver()
 
@@ -156,9 +179,10 @@ class AdversarialNet(object):
             config.lr, beta1=config.beta1
         ).minimize(self.g_loss, var_list=self.g_vars)
 
-        d_optim = tf.train.AdamOptimizer(
-            config.lr, beta1=config.beta1
-        ).minimize(self.d_loss, var_list=self.d_vars)
+        if self.d_loss is not None:
+            d_optim = tf.train.AdamOptimizer(
+                config.lr, beta1=config.beta1
+            ).minimize(self.d_loss, var_list=self.d_vars)
 
         if self.s_loss is not None:
             s_optim = tf.train.AdamOptimizer(
@@ -170,74 +194,127 @@ class AdversarialNet(object):
         sample_z = np.random.uniform(-1, 1, size=[self.sample_num, self.z_dim])
 
         counter = 0
-        start_time = time.time()
-        could_load, ckpt_counter = self.load(self.ckpt_dir)
-        if could_load:
-            counter = ckpt_counter
-            print(" [*] Load SUCCESS")
-        else:
-            print(" [!] Load failed...")
+
+        if config.flag_load:
+            could_load, ckpt_counter = self.load(self.ckpt_dir)
+            if could_load:
+                counter = ckpt_counter
+                print(" [*] Load SUCCESS")
+            else:
+                print(" [!] Load failed...")
+
+        perform_tv = []
+        perform_time = []
 
         for epoch in xrange(config.epoch):
-            batch_idxs = len(data) // self.batch_size
-            for idx in xrange(0, batch_idxs):
-                batch_images = data[idx*self.batch_size:(idx+1)*self.batch_size]
-                batch_labels = labels[idx*self.batch_size:(idx+1)*self.batch_size]
-                batch_z = np.random.uniform(-1, 1, size=[self.batch_size, self.z_dim])
+
+            start_time = time.time()
+
+            if self.model_mode.startswith('wgan'):
+                d_total_iter = 2
+                batch_idxs = len(data) // (d_total_iter * self.batch_size)
+                for idx in xrange(0, batch_idxs):
+                    curr_d_loss, curr_g_loss = 0.0, 0.0
+
+                    for d_iter in xrange(d_total_iter):
+                        batch_images = \
+                                data[(idx*d_total_iter+d_iter)*self.batch_size:(idx*d_total_iter+d_iter+1)*self.batch_size]
+                        batch_labels = \
+                                labels[(idx*d_total_iter+d_iter)*self.batch_size:(idx*d_total_iter+d_iter+1)*self.batch_size]
+                        batch_z = \
+                                np.random.uniform(-1,1,size=[self.batch_size, self.z_dim])
+
+                        # update D network
+                        if self.model_mode == 'wganori':
+                            _, curr_d_loss, _ = self.sess.run(
+                                    [d_optim, self.d_loss, self.clip_d],
+                                    feed_dict={
+                                        self.inputs:batch_images,
+                                        self.z: batch_z
+                                    })
+                        elif self.model_mode == 'wgangp':
+                            _, curr_d_loss = self.sess.run(
+                                    [d_optim, self.d_loss],
+                                    feed_dict={
+                                        self.inputs:batch_images,
+                                        self.z: batch_z
+                                    })
+
+                    # update G network
+                    _, curr_g_loss = self.sess.run(
+                            [g_optim, self.g_loss],
+                            feed_dict={
+                                self.inputs:batch_images,
+                                self.z: batch_z
+                            })
+
+                    counter += 1
+                    print("Epoch: [%2d] [%4d/%4d], d_loss: %.8f, g_loss: %.8f" \
+                          % (epoch, idx, batch_idxs, curr_d_loss, curr_g_loss))
+
+            else:
+                batch_idxs = len(data) // self.batch_size
 
                 curr_d_loss, curr_g_loss, curr_s_loss = 0.0, 0.0, 0.0
 
-                # Update D network
-                _, curr_d_loss = self.sess.run(
-                    [d_optim, self.d_loss],
-                    feed_dict={
-                        self.inputs: batch_images,
-                        self.z: batch_z
-                    }
-                )
+                for idx in xrange(0, batch_idxs):
+                    batch_images = \
+                            data[idx*self.batch_size:(idx+1)*self.batch_size]
+                    batch_labels = \
+                            labels[idx*self.batch_size:(idx+1)*self.batch_size]
+                    batch_z = \
+                            np.random.uniform(-1, 1, size=[self.batch_size, self.z_dim])
 
-                # Update DAN every 5 iters
-                if self.s_loss is not None:
-                    if np.mod(counter+1, 5) == 0:
-                        _, curr_s_loss = self.sess.run(
-                            [s_optim, self.s_loss],
+                    # Update D network
+                    if self.d_loss is not None:
+                        _, curr_d_loss = self.sess.run(
+                            [d_optim, self.d_loss],
                             feed_dict={
                                 self.inputs: batch_images,
                                 self.z: batch_z
-                            }
-                        )
-                    else:
-                        curr_s_loss = self.sess.run(
-                            self.s_loss, feed_dict={
-                                self.inputs: batch_images,
-                                self.z: batch_z
-                            }
-                        )
+                            })
 
-                # Update G network
-                _, curr_g_loss = self.sess.run(
-                    [g_optim, self.g_loss],
-                    feed_dict={
-                        self.inputs: batch_images,
-                        self.z: batch_z
-                    })
+                    # Update DAN every 5 iters
+                    if self.s_loss is not None:
+                        if np.mod(counter+1, 5) == 0:
+                            _, curr_s_loss = self.sess.run(
+                                [s_optim, self.s_loss],
+                                feed_dict={
+                                    self.inputs: batch_images,
+                                    self.z: batch_z
+                                })
 
-                counter += 1
+                    # Update G network
+                    _, curr_g_loss = self.sess.run(
+                        [g_optim, self.g_loss],
+                        feed_dict={
+                            self.inputs: batch_images,
+                            self.z: batch_z
+                        })
 
-                print("Epoch: [%2d] [%4d/%4d], time: %4.4f, d_loss: %.8f, g_loss: %.8f, s_loss: %.8f" \
-                      % (epoch, idx, batch_idxs, time.time() - start_time, \
-                         curr_d_loss, curr_g_loss, curr_s_loss))
+                    counter += 1
+
+                    print("Epoch: [%2d] [%4d/%4d], d_loss: %.8f, g_loss: %.8f, s_loss: %.8f" \
+                          % (epoch, idx, batch_idxs, curr_d_loss, curr_g_loss, curr_s_loss))
+
+            epoch_time = time.time() - start_time
+            curr_tv, _ = utils.evaluate(classifier, self, config)
 
             samples = self.sess.run(self.sampler, feed_dict={ self.z: sample_z })
-
             self.save_smpl(config.smpl_dir, epoch, samples)
+
+            perform_tv.append(curr_tv)
+            perform_time.append(epoch_time)
+
             self.save(config.ckpt_dir, epoch)
+
+        return perform_tv, perform_time
 
     def infer(self):
         batch_z = np.random.uniform(-1, 1, size=[self.batch_size, self.z_dim])
         samples = self.sess.run(self.sampler, feed_dict={ self.z: batch_z })
 
-        samples = np.reshape(samples, (-1,28,28,1))
+        samples = np.reshape(samples, (-1,self.img_height,self.img_width,self.img_channel))
         manifold_h = int(np.ceil(np.sqrt(samples.shape[0])))
         manifold_w = int(np.floor(np.sqrt(samples.shape[0])))
 
@@ -251,9 +328,9 @@ class AdversarialNet(object):
     def sample(self):
         batch_z = np.random.uniform(-1, 1, size=[self.batch_size, self.z_dim])
         samples = self.sess.run(self.sampler, feed_dict={ self.z: batch_z })
+        samples = np.reshape(samples, (-1,self.img_height,self.img_width,self.img_channel))
 
         return samples
-
 
     def discriminator_dan_2s(self, image_real, image_fake, flag_reuse=False):
         with tf.variable_scope("discriminator_dan_2s", reuse=flag_reuse):
@@ -297,6 +374,16 @@ class AdversarialNet(object):
 
             return tf.nn.sigmoid(h_fin), h_fin
 
+    def discriminator_mmd(self, image_real, image_fake):
+        sigmas = [0.1, 0.5, 1, 5, 10, 50]
+        cost = tf.reduce_mean(utils.gaussian_kernel_matrix(image_real, image_real, sigmas))
+        cost += tf.reduce_mean(utils.gaussian_kernel_matrix(image_fake, image_fake, sigmas))
+        cost -= 2 * tf.reduce_mean(utils.gaussian_kernel_matrix(image_real, image_fake, sigmas))
+        # We do not allow the loss to become negative.
+        cost = tf.where(cost > 0, cost, 0, name='value')
+
+        return cost
+
     def discriminator(self, image, flag_train=True, flag_reuse=False):
         with tf.variable_scope("discriminator", reuse=flag_reuse):
             h_0 = ops.lrelu(ops.conv2d(image, 64, 4, 4, 2, 2, name='d_conv0'))
@@ -310,13 +397,13 @@ class AdversarialNet(object):
     def generator(self, z, flag_train=True, flag_reuse=False):
         with tf.variable_scope("generator", reuse=flag_reuse):
             h_0 = tf.nn.relu(ops.bn(ops.linear(z, 1024, scope='g_fc0'), is_training=flag_train, scope='g_bn0'))
-            h_1 = tf.nn.relu(ops.bn(ops.linear(h_0, 128 * 7 * 7, scope='g_fc1'), is_training=flag_train, scope='g_bn1'))
-            h_1_flat = tf.reshape(h_1, [self.batch_size, 7, 7, 128])
+            h_1 = tf.nn.relu(ops.bn(ops.linear(h_0, 128 * self.img_width * self.img_height / 16, scope='g_fc1'), is_training=flag_train, scope='g_bn1'))
+            h_1_flat = tf.reshape(h_1, [self.batch_size, self.img_width/4, self.img_height/4, 128])
             h_2 = tf.nn.relu(ops.bn(
-                ops.deconv2d(h_1_flat, [self.batch_size, 14, 14, 64], 4, 4, 2, 2, name='g_dc2'),
+                ops.deconv2d(h_1_flat, [self.batch_size, self.img_width/2, self.img_height/2, 64], 4, 4, 2, 2, name='g_dc2'),
                 is_training=flag_train, scope='g_bn2'
             ))
-            h_fin = ops.deconv2d(h_2, [self.batch_size, 28, 28, 1], 4, 4, 2, 2, name='g_dc3')
+            h_fin = ops.deconv2d(h_2, [self.batch_size, self.img_width, self.img_height, self.img_channel], 4, 4, 2, 2, name='g_dc3')
 
             return tf.nn.sigmoid(h_fin)
 
@@ -325,7 +412,7 @@ class AdversarialNet(object):
         return self.model_mode + '-conv-' + self.dataset
 
     def save_smpl(self, smpl_dir, epoch, samples):
-        samples = np.reshape(samples, (-1,28,28,1))
+        samples = np.reshape(samples, (-1,self.img_height,self.img_width,self.img_channel))
         manifold_h = int(np.ceil(np.sqrt(samples.shape[0])))
         manifold_w = int(np.floor(np.sqrt(samples.shape[0])))
 
