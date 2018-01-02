@@ -61,7 +61,8 @@ if __name__ == '__main__':
         raise NotImplementedError
 
     classifier = classifiers.classifier_net(config.dataset)
-    classifier.load()
+    if not config.dataset == 'cifar10':
+        classifier.load()
 
     with tf.Session() as sess:
 
@@ -90,7 +91,7 @@ if __name__ == '__main__':
             if not model.load(config.ckpt_dir):
                 raise Exception('[!] Train a model first, then run test mode')
 
-            label_tv, y_vec = utils.evaluate(model, config)
+            label_tv, y_vec = utils.evaluate(classifier, model, config)
 
             pickle.dump({
                 'label': y_vec,

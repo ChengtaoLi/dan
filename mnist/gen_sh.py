@@ -1,8 +1,9 @@
 
-methods = ['dan_s']
+methods = ['gan', 'wganori', 'wgangp', 'mmd', 'dan_s', 'dan_2s']
 script = 'main.py'
-script_id = 1
-dataset = 'mnist'
+script_id = 0
+dataset = 'svhn'
+network = 'conv'
 checkpoint_dir = 'ckpt_' + str(script_id)
 train_epoch = 50
 num_rep = 5
@@ -19,6 +20,7 @@ for rep in xrange(num_rep):
     for i in xrange(len(methods)):
         fid.write('python ' + script + \
                   ' --flag_train True' + \
+                  ' --network ' + network + \
                   ' --dataset ' + dataset + \
                   ' --ckpt_dir ' + checkpoint_dir + '_' + str(rep) + \
                   ' --model_mode ' + methods[i] + \

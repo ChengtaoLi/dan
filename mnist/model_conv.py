@@ -10,7 +10,6 @@ from six.moves import xrange
 
 import ops
 import utils
-import mnist_classifier
 
 class AdversarialNet(object):
     def __init__(self, sess, config):
@@ -171,9 +170,9 @@ class AdversarialNet(object):
 
         self.saver = tf.train.Saver()
 
-    def train(self, config):
+    def train(self, config, classifier):
         """Train model"""
-        data, labels, test_data, test_labels = utils.load_mnist(self.dataset)
+        data, labels, test_data, test_labels = utils.load_data(self.dataset)
 
         g_optim = tf.train.AdamOptimizer(
             config.lr, beta1=config.beta1
@@ -187,7 +186,7 @@ class AdversarialNet(object):
         if self.s_loss is not None:
             s_optim = tf.train.AdamOptimizer(
                 config.lr, beta1=config.beta1
-            ).minimize(self.s_loss, var_list=self.s_vars)
+            ).minimize(self.s_loss, var_list=self.d_vars)
 
         tf.global_variables_initializer().run()
 
@@ -337,40 +336,40 @@ class AdversarialNet(object):
             image_real_0, image_real_1 = tf.split(image_real, num_or_size_splits=2, axis=0)
             image_fake_0, image_fake_1 = tf.split(image_fake, num_or_size_splits=2, axis=0)
 
-            h_real_0_0 = ops.lrelu(ops.conv2d(image_real_0, 64, 4, 4, 2, 2, name='s_conv0'))
-            h_real_1_0 = ops.lrelu(ops.conv2d(image_real_1, 64, 4, 4, 2, 2, name='s_conv0', reuse=True))
-            h_fake_0_0 = ops.lrelu(ops.conv2d(image_fake_0, 64, 4, 4, 2, 2, name='s_conv0', reuse=True))
-            h_fake_1_0 = ops.lrelu(ops.conv2d(image_fake_1, 64, 4, 4, 2, 2, name='s_conv0', reuse=True))
+            h_real_0_0 = ops.lrelu(ops.conv2d(image_real_0, 64, 4, 4, 2, 2, name='d_conv0'))
+            h_real_1_0 = ops.lrelu(ops.conv2d(image_real_1, 64, 4, 4, 2, 2, name='d_conv0', reuse=True))
+            h_fake_0_0 = ops.lrelu(ops.conv2d(image_fake_0, 64, 4, 4, 2, 2, name='d_conv0', reuse=True))
+            h_fake_1_0 = ops.lrelu(ops.conv2d(image_fake_1, 64, 4, 4, 2, 2, name='d_conv0', reuse=True))
 
-            h_real_0_1 = ops.lrelu(ops.conv2d(h_real_0_0, 128, 4, 4, 2, 2, name='s_conv1'))
-            h_real_1_1 = ops.lrelu(ops.conv2d(h_real_1_0, 128, 4, 4, 2, 2, name='s_conv1', reuse=True))
-            h_fake_0_1 = ops.lrelu(ops.conv2d(h_fake_0_0, 128, 4, 4, 2, 2, name='s_conv1', reuse=True))
-            h_fake_1_1 = ops.lrelu(ops.conv2d(h_fake_1_0, 128, 4, 4, 2, 2, name='s_conv1', reuse=True))
+            h_real_0_1 = ops.lrelu(ops.conv2d(h_real_0_0, 128, 4, 4, 2, 2, name='d_conv1'))
+            h_real_1_1 = ops.lrelu(ops.conv2d(h_real_1_0, 128, 4, 4, 2, 2, name='d_conv1', reuse=True))
+            h_fake_0_1 = ops.lrelu(ops.conv2d(h_fake_0_0, 128, 4, 4, 2, 2, name='d_conv1', reuse=True))
+            h_fake_1_1 = ops.lrelu(ops.conv2d(h_fake_1_0, 128, 4, 4, 2, 2, name='d_conv1', reuse=True))
 
             h_real_0_avg = tf.reduce_mean(tf.reshape(h_real_0_1, [int(self.batch_size/2), -1]), axis=0, keep_dims=True)
             h_real_1_avg = tf.reduce_mean(tf.reshape(h_real_1_1, [int(self.batch_size/2), -1]), axis=0, keep_dims=True)
             h_fake_0_avg = tf.reduce_mean(tf.reshape(h_fake_0_1, [int(self.batch_size/2), -1]), axis=0, keep_dims=True)
             h_fake_1_avg = tf.reduce_mean(tf.reshape(h_fake_1_1, [int(self.batch_size/2), -1]), axis=0, keep_dims=True)
 
-            h_11_2 = ops.lrelu(ops.linear(tf.abs(h_real_0_avg - h_real_1_avg), 1024, 's_fc2'))
-            h_00_2 = ops.lrelu(ops.linear(tf.abs(h_fake_0_avg - h_fake_1_avg), 1024, 's_fc2', reuse=True))
-            h_10_2 = ops.lrelu(ops.linear(tf.abs(h_real_0_avg - h_fake_1_avg), 1024, 's_fc2', reuse=True))
-            h_01_2 = ops.lrelu(ops.linear(tf.abs(h_fake_0_avg - h_real_1_avg), 1024, 's_fc2', reuse=True))
+            h_11_2 = ops.lrelu(ops.linear(tf.abs(h_real_0_avg - h_real_1_avg), 1024, 'd_fc2'))
+            h_00_2 = ops.lrelu(ops.linear(tf.abs(h_fake_0_avg - h_fake_1_avg), 1024, 'd_fc2', reuse=True))
+            h_10_2 = ops.lrelu(ops.linear(tf.abs(h_real_0_avg - h_fake_1_avg), 1024, 'd_fc2', reuse=True))
+            h_01_2 = ops.lrelu(ops.linear(tf.abs(h_fake_0_avg - h_real_1_avg), 1024, 'd_fc2', reuse=True))
 
-            h_11_fin = ops.linear(h_11_2, 1, 's_fin')
-            h_00_fin = ops.linear(h_00_2, 1, 's_fin', reuse=True)
-            h_10_fin = ops.linear(h_10_2, 1, 's_fin', reuse=True)
-            h_01_fin = ops.linear(h_01_2, 1, 's_fin', reuse=True)
+            h_11_fin = ops.linear(h_11_2, 1, 'd_fin')
+            h_00_fin = ops.linear(h_00_2, 1, 'd_fin', reuse=True)
+            h_10_fin = ops.linear(h_10_2, 1, 'd_fin', reuse=True)
+            h_01_fin = ops.linear(h_01_2, 1, 'd_fin', reuse=True)
 
             return h_11_fin, h_00_fin, h_10_fin, h_01_fin
 
     def discriminator_dan_s(self, image, flag_train=True, flag_reuse=False):
         with tf.variable_scope("discriminator_dan_s", reuse=flag_reuse):
-            h_0 = ops.lrelu(ops.conv2d(image, 64, 4, 4, 2, 2, name='s_conv0'))
-            h_1 = ops.lrelu(ops.conv2d(h_0, 128, 4, 4, 2, 2, name='s_conv1'))
+            h_0 = ops.lrelu(ops.conv2d(image, 64, 4, 4, 2, 2, name='d_conv0'))
+            h_1 = ops.lrelu(ops.conv2d(h_0, 128, 4, 4, 2, 2, name='d_conv1'))
             h_1_avg = tf.reduce_mean(tf.reshape(h_1, [self.batch_size, -1]), axis=0, keep_dims=True)
-            h_2 = ops.lrelu(ops.linear(h_1_avg, 1024, scope='s_fc2'))
-            h_fin = ops.linear(h_2, 1, scope='s_fin')
+            h_2 = ops.lrelu(ops.linear(h_1_avg, 1024, scope='d_fc2'))
+            h_fin = ops.linear(h_2, 1, scope='d_fin')
 
             return tf.nn.sigmoid(h_fin), h_fin
 
@@ -398,9 +397,9 @@ class AdversarialNet(object):
         with tf.variable_scope("generator", reuse=flag_reuse):
             h_0 = tf.nn.relu(ops.bn(ops.linear(z, 1024, scope='g_fc0'), is_training=flag_train, scope='g_bn0'))
             h_1 = tf.nn.relu(ops.bn(ops.linear(h_0, 128 * self.img_width * self.img_height / 16, scope='g_fc1'), is_training=flag_train, scope='g_bn1'))
-            h_1_flat = tf.reshape(h_1, [self.batch_size, self.img_width/4, self.img_height/4, 128])
+            h_1_flat = tf.reshape(h_1, [self.batch_size, self.img_width//4, self.img_height//4, 128])
             h_2 = tf.nn.relu(ops.bn(
-                ops.deconv2d(h_1_flat, [self.batch_size, self.img_width/2, self.img_height/2, 64], 4, 4, 2, 2, name='g_dc2'),
+                ops.deconv2d(h_1_flat, [self.batch_size, self.img_width//2, self.img_height//2, 64], 4, 4, 2, 2, name='g_dc2'),
                 is_training=flag_train, scope='g_bn2'
             ))
             h_fin = ops.deconv2d(h_2, [self.batch_size, self.img_width, self.img_height, self.img_channel], 4, 4, 2, 2, name='g_dc3')
