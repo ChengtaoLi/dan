@@ -25,7 +25,7 @@ class AdversarialNet(object):
 
         self.ckpt_dir = config.ckpt_dir
 
-        if self.dataset in ['mnist', 'fashion_mnist']:
+        if self.dataset in ['mnist', 'fashion']:
             self.img_height = 28
             self.img_width = 28
             self.img_channel = 1

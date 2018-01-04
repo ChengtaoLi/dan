@@ -3,7 +3,11 @@ methods = ['gan', 'wganori', 'wgangp', 'mmd', 'dan_s', 'dan_2s']
 script = 'main.py'
 script_id = 0
 dataset = 'svhn'
-network = 'conv'
+if dataset in ['cifar10']:
+    network = 'conv'
+else:
+    network = 'mlp'
+
 checkpoint_dir = 'ckpt_' + str(script_id)
 train_epoch = 50
 num_rep = 5
